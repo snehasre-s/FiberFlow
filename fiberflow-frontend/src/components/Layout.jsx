@@ -10,6 +10,7 @@ const Layout = ({ user, onLogout }) => {
           <a className="navbar-brand fw-bold" href="/">
             <i className="bi bi-hdd-network me-2"></i>
             <span className="text-warning">Fiber</span>Flow
+            
           </a>
           {user && (
             <div className="d-flex align-items-center">
