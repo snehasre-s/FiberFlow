@@ -1,15 +1,15 @@
 package com.example.fiberflow_backup.dto;
 
-import com.example.fiberflow_backup.model.User;
+import com.example.fiberflow_backup.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
 public class LoginResponse {
-    private Long id;
+    private Long userId;
     private String username;
-    private User.Role role;
+    private UserRole role;
     private String token;
     private String message;
 }

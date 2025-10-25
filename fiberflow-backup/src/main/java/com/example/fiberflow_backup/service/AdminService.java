@@ -1,80 +1,61 @@
 package com.example.fiberflow_backup.service;
 
-import com.example.fiberflow_backup.dto.ActivityLogDTO;
-import com.example.fiberflow_backup.dto.AdminDashboardDTO;
-import com.example.fiberflow_backup.dto.DashboardStatsDTO;
-import com.example.fiberflow_backup.dto.UserLogDTO;
-import com.example.fiberflow_backup.model.ActivityLog;
-import com.example.fiberflow_backup.model.Customer;
-import com.example.fiberflow_backup.model.Task;
-import com.example.fiberflow_backup.model.UserLog;
+import com.example.fiberflow_backup.dto.AdminDashboardResponse;
+import com.example.fiberflow_backup.dto.AdminDashboardResponse.DashboardStats;
+import com.example.fiberflow_backup.dto.AuditLogDTO;
+import com.example.fiberflow_backup.enums.AssetType;
+import com.example.fiberflow_backup.enums.TaskStatus;
 import com.example.fiberflow_backup.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
-    @Autowired
-    AssetRepository assetRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    TaskRepository taskRepository;
-    @Autowired
-    CustomerRepository customerRepository;
-    @Autowired
-    ActivityLogRepository activityLogRepository;
-    @Autowired
-    UserLogRepository userLogRepository;
+    private final CustomerRepository customerRepository;
+    private final AssetRepository assetRepository;
+    private final DeploymentTaskRepository deploymentTaskRepository;
+    private final TechnicianRepository technicianRepository;
+    private final AuditLogRepository auditLogRepository;
 
-    public AdminDashboardDTO getDashboardData() {
+    public AdminDashboardResponse getDashboardData() {
         // Get statistics
-        DashboardStatsDTO stats = new DashboardStatsDTO(
+        DashboardStats stats = new DashboardStats(
+                customerRepository.count(),
                 assetRepository.count(),
-                userRepository.count(),
-                taskRepository.countByStatus(Task.TaskStatus.Pending),
-                customerRepository.countByStatus(Customer.Status.Active)
+                deploymentTaskRepository.countByStatus(TaskStatus.Scheduled),
+                technicianRepository.count()
         );
 
-        // Get recent activities
-        List<ActivityLogDTO> recentActivities = activityLogRepository
-                .findTop10ByOrderByTimestampDesc()
+        // Get recent audit logs (last 10)
+        List<AuditLogDTO> recentLogs = auditLogRepository.findTop20ByOrderByTimestampDesc()
                 .stream()
-                .map(this::convertToActivityLogDTO)
+                .map(log -> new AuditLogDTO(
+                        log.getLogId(),
+                        log.getUser().getUsername(),
+                        log.getActionType(),
+                        log.getDescription(),
+                        log.getTimestamp()
+                ))
                 .collect(Collectors.toList());
 
-        // Get user logs
-        List<UserLogDTO> userLogs = userLogRepository
-                .findTop10ByOrderByLoginTimeDesc()
-                .stream()
-                .map(this::convertToUserLogDTO)
-                .collect(Collectors.toList());
+        // Get asset summary by type
+        Map<String, Long> assetSummary = new HashMap<>();
+        for (AssetType type : AssetType.values()) {
+            assetSummary.put(
+                    type.name().substring(0, 1).toLowerCase() +
+                            type.name().substring(1).replaceAll("([A-Z])", "$1"),
+                    assetRepository.countByAssetType(type)
+            );
+        }
 
-        return new AdminDashboardDTO(stats, recentActivities, userLogs);
-    }
-
-    private ActivityLogDTO convertToActivityLogDTO(ActivityLog log) {
-        return new ActivityLogDTO(
-                log.getId(),
-                log.getUser().getUsername(),
-                log.getAction(),
-                log.getDetails(),
-                log.getStatus() != null ? log.getStatus().name() : "Unknown",
-                log.getTimestamp()
-        );
-    }
-
-    private UserLogDTO convertToUserLogDTO(UserLog log) {
-        return new UserLogDTO(
-                log.getId(),
-                log.getUser().getUsername(),
-                log.getUser().getRole().name(),
-                log.getLoginTime()
-        );
+        return new AdminDashboardResponse(stats, recentLogs, assetSummary);
     }
 }

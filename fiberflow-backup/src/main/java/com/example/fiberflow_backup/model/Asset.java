@@ -1,5 +1,7 @@
 package com.example.fiberflow_backup.model;
 
+import com.example.fiberflow_backup.enums.AssetStatus;
+import com.example.fiberflow_backup.enums.AssetType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,32 +17,29 @@ public class Asset {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String assetId;
+    @Column(name = "asset_id")
+    private Long assetId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AssetType type;
+    @Column(name = "asset_type", nullable = false)
+    private AssetType assetType;
+
+    @Column(length = 100)
+    private String model;
+
+    @Column(name = "serial_number", unique = true, length = 100)
+    private String serialNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AssetStatus status = AssetStatus.Available;
 
+    @Column(length = 100)
     private String location;
 
-    @Column(name = "last_maintenance")
-    private LocalDateTime lastMaintenance;
+    @Column(name = "assigned_to_customer_id")
+    private Long assignedToCustomerId;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    public enum AssetType {
-        FDH, ONT, Router, Splitter, Cable
-    }
-
-    public enum AssetStatus {
-        Available, Assigned, Defective, Maintenance
-    }
+    @Column(name = "assigned_date")
+    private LocalDateTime assignedDate;
 }

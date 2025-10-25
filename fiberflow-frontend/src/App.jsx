@@ -1,32 +1,44 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-// Components
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
+// Layout
+import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
-// Pages (we'll create these next)
-import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import PlannerDashboard from './pages/PlannerDashboard';
-import TechnicianDashboard from './pages/TechnicianDashboard';
-import SupportDashboard from './pages/SupportDashboard';
-import CustomerOnboarding from './pages/CustomerOnboarding';
-import AssetInventory from './pages/AssetInventory';
-import NetworkTopology from './pages/NetworkTopology';
-import DeploymentTasks from './pages/DeploymentTasks';
-import SupportDeactivation from './pages/SupportDeactivation';
-import AuditLogs from './pages/AuditLogs';
+// Pages
+import Login from './pages/auth/Login';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import PlannerDashboard from './pages/planner/PlannerDashboard';
+import TechnicianDashboard from './pages/technician/TechnicianDashboard';
+import SupportDashboard from './pages/support/SupportDashboard';
+import FieldEngineerDashboard from './pages/field-engineer/FieldEngineerDashboard';
+import DeploymentLeadDashboard from './pages/deployment-lead/DeploymentLeadDashboard';
+
+// Placeholder pages
+const PlaceholderPage = ({ title }) => (
+  <div className="container mt-4">
+    <div className="alert alert-info">
+      <h3><i className="bi bi-info-circle me-2"></i>{title}</h3>
+      <p className="mb-0">This page is under construction. Coming soon!</p>
+    </div>
+  </div>
+);
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (from localStorage)
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
     }
+    setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
@@ -40,15 +52,38 @@ function App() {
     localStorage.removeItem('token');
   };
 
+  // Role-based dashboard routing
+  const getDashboardRoute = (role) => {
+    const routes = {
+      'Admin': '/admin-dashboard',
+      'Planner': '/planner-dashboard',
+      'Technician': '/technician-dashboard',
+      'SupportAgent': '/support-dashboard',
+      'FieldEngineer': '/field-engineer-dashboard',
+      'DeploymentLead': '/deployment-lead-dashboard'
+    };
+    return routes[role] || '/admin-dashboard';
+  };
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Router>
       <Routes>
-        {/* Public Route */}
+        {/* Public Route - Login */}
         <Route 
           path="/login" 
           element={
             user ? (
-              <Navigate to={`/${user.role.toLowerCase()}-dashboard`} replace />
+              <Navigate to={getDashboardRoute(user.role)} replace />
             ) : (
               <Login onLogin={handleLogin} />
             )
@@ -57,20 +92,13 @@ function App() {
 
         {/* Protected Routes with Layout */}
         <Route element={<Layout user={user} onLogout={handleLogout} />}>
+          
           {/* Admin Routes */}
           <Route 
             path="/admin-dashboard" 
             element={
               <ProtectedRoute user={user} allowedRoles={['Admin']}>
                 <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/audit-logs" 
-            element={
-              <ProtectedRoute user={user} allowedRoles={['Admin']}>
-                <AuditLogs />
               </ProtectedRoute>
             } 
           />
@@ -84,14 +112,6 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/network-topology" 
-            element={
-              <ProtectedRoute user={user} allowedRoles={['Planner', 'Admin']}>
-                <NetworkTopology />
-              </ProtectedRoute>
-            } 
-          />
 
           {/* Technician Routes */}
           <Route 
@@ -102,55 +122,101 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/deployment-tasks" 
-            element={
-              <ProtectedRoute user={user} allowedRoles={['Technician', 'Admin']}>
-                <DeploymentTasks />
-              </ProtectedRoute>
-            } 
-          />
 
-          {/* Support Routes */}
+          {/* Support Agent Routes */}
           <Route 
             path="/support-dashboard" 
             element={
-              <ProtectedRoute user={user} allowedRoles={['Support']}>
+              <ProtectedRoute user={user} allowedRoles={['SupportAgent']}>
                 <SupportDashboard />
               </ProtectedRoute>
             } 
           />
+
+          {/* Field Engineer Routes */}
           <Route 
-            path="/support-deactivation" 
+            path="/field-engineer-dashboard" 
             element={
-              <ProtectedRoute user={user} allowedRoles={['Support', 'Admin']}>
-                <SupportDeactivation />
+              <ProtectedRoute user={user} allowedRoles={['FieldEngineer']}>
+                <FieldEngineerDashboard />
               </ProtectedRoute>
             } 
           />
 
-          {/* Shared Routes */}
+          {/* Deployment Lead Routes */}
+          <Route 
+            path="/deployment-lead-dashboard" 
+            element={
+              <ProtectedRoute user={user} allowedRoles={['DeploymentLead']}>
+                <DeploymentLeadDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Shared/Placeholder Routes */}
+          <Route 
+            path="/customers" 
+            element={
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Customer Management" />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/customer-onboarding" 
             element={
-              <ProtectedRoute user={user} allowedRoles={['Admin', 'Support']}>
-                <CustomerOnboarding />
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Customer Onboarding" />
               </ProtectedRoute>
             } 
           />
           <Route 
-            path="/asset-inventory" 
+            path="/assets" 
             element={
-              <ProtectedRoute user={user} allowedRoles={['Admin', 'Planner', 'Technician']}>
-                <AssetInventory />
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Asset Inventory" />
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/network-topology" 
+            element={
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Network Topology" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/deployment-tasks" 
+            element={
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Deployment Tasks" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/audit-logs" 
+            element={
+              <ProtectedRoute user={user}>
+                <PlaceholderPage title="Audit Logs" />
+              </ProtectedRoute>
+            } 
+          />
+          
         </Route>
 
         {/* Default Routes */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route 
+          path="/" 
+          element={
+            user ? (
+              <Navigate to={getDashboardRoute(user.role)} replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

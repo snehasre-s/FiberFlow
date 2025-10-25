@@ -1,5 +1,7 @@
 package com.example.fiberflow_backup.model;
 
+import com.example.fiberflow_backup.enums.ConnectionType;
+import com.example.fiberflow_backup.enums.CustomerStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,34 +17,36 @@ public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "customer_id")
+    private Long customerId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String phone;
-
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String address;
 
-    @Column(name = "service_plan")
-    private String servicePlan;
+    @Column(length = 100)
+    private String neighborhood;
 
-    @Column(name = "activation_date")
-    private LocalDateTime activationDate;
+    @Column(length = 50)
+    private String plan;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "connection_type")
+    private ConnectionType connectionType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.Active;
+    private CustomerStatus status = CustomerStatus.Pending;
+
+    @ManyToOne
+    @JoinColumn(name = "splitter_id")
+    private Splitter splitter;
+
+    @Column(name = "assigned_port")
+    private Integer assignedPort;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    public enum Status {
-        Active, Inactive, Pending, Suspended
-    }
 }

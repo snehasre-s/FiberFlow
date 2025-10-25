@@ -1,6 +1,6 @@
 package com.example.fiberflow_backup.dto;
 
-import com.example.fiberflow_backup.model.User;
+import com.example.fiberflow_backup.enums.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -15,5 +15,5 @@ public class LoginRequest {
     private String password;
 
     @NotNull(message = "Role is required")
-    private User.Role role;
+    private UserRole role;
 }
