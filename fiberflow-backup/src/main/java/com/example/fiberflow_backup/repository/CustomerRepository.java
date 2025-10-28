@@ -13,4 +13,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     long countByStatus(CustomerStatus status);
     long countByCreatedAtAfter(LocalDateTime dateTime);
     List<Customer> findTop20ByOrderByCreatedAtDesc();
+    List<Customer> findBySplitter_SplitterId(Long splitterId);  // ADD THIS
 }

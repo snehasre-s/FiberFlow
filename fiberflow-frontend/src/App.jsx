@@ -13,6 +13,9 @@ import TechnicianDashboard from './pages/technician/TechnicianDashboard';
 import SupportDashboard from './pages/support/SupportDashboard';
 import FieldEngineerDashboard from './pages/field-engineer/FieldEngineerDashboard';
 import DeploymentLeadDashboard from './pages/deployment-lead/DeploymentLeadDashboard';
+import AssetInventory from './pages/assets/AssetInventory';
+import NetworkTopology from './pages/network/NetworkTopology';
+import DeploymentTasks from './pages/tasks/DeploymentTasks';
 
 // Placeholder pages
 const PlaceholderPage = ({ title }) => (
@@ -174,7 +177,7 @@ function App() {
             path="/assets" 
             element={
               <ProtectedRoute user={user}>
-                <PlaceholderPage title="Asset Inventory" />
+                <AssetInventory />
               </ProtectedRoute>
             } 
           />
@@ -182,7 +185,7 @@ function App() {
             path="/network-topology" 
             element={
               <ProtectedRoute user={user}>
-                <PlaceholderPage title="Network Topology" />
+                <NetworkTopology />
               </ProtectedRoute>
             } 
           />
@@ -190,7 +193,7 @@ function App() {
             path="/deployment-tasks" 
             element={
               <ProtectedRoute user={user}>
-                <PlaceholderPage title="Deployment Tasks" />
+                <DeploymentTasks />
               </ProtectedRoute>
             } 
           />

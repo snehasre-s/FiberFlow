@@ -3,15 +3,21 @@ package com.example.fiberflow_backup.service;
 import com.example.fiberflow_backup.dto.LoginRequest;
 import com.example.fiberflow_backup.dto.LoginResponse;
 import com.example.fiberflow_backup.enums.*;
+import com.example.fiberflow_backup.exception.InvalidCredentialException;
 import com.example.fiberflow_backup.model.*;
 import com.example.fiberflow_backup.repository.*;
 import com.example.fiberflow_backup.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -28,8 +34,10 @@ public class AuthService {
     private final HeadendRepository headendRepository;
     private final FDHRepository fdhRepository;
     private final SplitterRepository splitterRepository;
+    private final AuthenticationManager authenticationManager;
     @Autowired
     AuditLogRepository auditLogRepository;
+
 
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUsernameAndRole(request.getUsername(), request.getRole())
@@ -38,10 +46,14 @@ public class AuthService {
         if (!user.getActive()) {
             throw new RuntimeException("User account is deactivated");
         }
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+        String test = passwordEncoder.encode(request.getPassword());
+        System.out.println();
+        System.out.println(user.getPasswordHash() + " " + test);
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())){
+            throw new InvalidCredentialException("Invalid Cred");
         }
+//        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
@@ -64,16 +76,33 @@ public class AuthService {
 
     @Transactional
     public void initializeDemoData() {
+        System.out.println(passwordEncoder.encode("admin123"));
         // Create demo users for all 6 roles
+        // Create demo users for all 6 roles with unique passwords
         if (userRepository.count() == 0) {
-            String encodedPassword = passwordEncoder.encode("password123");
+            // Admin - password: admin123
+            userRepository.save(createUser(null, "admin",
+                    passwordEncoder.encode("admin123"), UserRole.Admin));
 
-            userRepository.save(createUser(null, "admin", encodedPassword, UserRole.Admin));
-            userRepository.save(createUser(null, "planner", encodedPassword, UserRole.Planner));
-            userRepository.save(createUser(null, "technician", encodedPassword, UserRole.Technician));
-            userRepository.save(createUser(null, "support", encodedPassword, UserRole.SupportAgent));
-            userRepository.save(createUser(null, "fieldengineer", encodedPassword, UserRole.FieldEngineer));
-            userRepository.save(createUser(null, "deploymentlead", encodedPassword, UserRole.DeploymentLead));
+            // Planner - password: planner123
+            userRepository.save(createUser(null, "planner",
+                    passwordEncoder.encode("planner123"), UserRole.Planner));
+
+            // Technician - password: tech123
+            userRepository.save(createUser(null, "technician",
+                    passwordEncoder.encode("tech123"), UserRole.Technician));
+
+            // Support Agent - password: support123
+            userRepository.save(createUser(null, "support",
+                    passwordEncoder.encode("support123"), UserRole.SupportAgent));
+
+            // Field Engineer - password: field123
+            userRepository.save(createUser(null, "fieldengineer",
+                    passwordEncoder.encode("field123"), UserRole.FieldEngineer));
+
+            // Deployment Lead - password: deploy123
+            userRepository.save(createUser(null, "deploymentlead",
+                    passwordEncoder.encode("deploy123"), UserRole.DeploymentLead));
         }
 
         // Create demo technicians
@@ -96,15 +125,76 @@ public class AuthService {
         }
 
         // Create demo customers
-        if (customerRepository.count() == 0) {
-            Splitter splitter = splitterRepository.findById(1L).orElse(null);
+//        if (customerRepository.count() == 0) {
+//            Splitter splitter = splitterRepository.findById(1L).orElse(null);
+//
+//            customerRepository.save(createCustomer(null, "John Doe", "123 Main Street, Bangalore",
+//                    "Koramangala", "Premium 200 Mbps", ConnectionType.Wired, CustomerStatus.Active, splitter, 1));
+//            customerRepository.save(createCustomer(null, "Jane Smith", "456 Park Avenue, Bangalore",
+//                    "Indiranagar", "Standard 100 Mbps", ConnectionType.Wired, CustomerStatus.Active, splitter, 2));
+//            customerRepository.save(createCustomer(null, "Robert Brown", "789 Tech Street, Bangalore",
+//                    "Whitefield", "Basic 50 Mbps", ConnectionType.Wireless, CustomerStatus.Pending, null, null));
+//        }
+        // In initializeDemoData() method, update customer creation:
 
-            customerRepository.save(createCustomer(null, "John Doe", "123 Main Street, Bangalore",
-                    "Koramangala", "Premium 200 Mbps", ConnectionType.Wired, CustomerStatus.Active, splitter, 1));
-            customerRepository.save(createCustomer(null, "Jane Smith", "456 Park Avenue, Bangalore",
-                    "Indiranagar", "Standard 100 Mbps", ConnectionType.Wired, CustomerStatus.Active, splitter, 2));
-            customerRepository.save(createCustomer(null, "Robert Brown", "789 Tech Street, Bangalore",
-                    "Whitefield", "Basic 50 Mbps", ConnectionType.Wireless, CustomerStatus.Pending, null, null));
+        if (customerRepository.count() == 0) {
+            Splitter splitter1 = splitterRepository.findById(1L).orElse(null);
+            Splitter splitter2 = splitterRepository.findById(2L).orElse(null);
+
+            // Customer 1 - connected to splitter 1, port 1
+            Customer customer1 = new Customer();
+            customer1.setName("John Doe");
+            customer1.setAddress("123 Main Street, Bangalore");
+            customer1.setNeighborhood("Koramangala");
+            customer1.setPlan("Premium 200 Mbps");
+            customer1.setConnectionType(ConnectionType.Wired);
+            customer1.setStatus(CustomerStatus.Active);
+            customer1.setSplitter(splitter1);
+            customer1.setAssignedPort(1);
+            customer1.setCreatedAt(LocalDateTime.now());
+            customerRepository.save(customer1);
+
+            // Update splitter used ports
+            if (splitter1 != null) {
+                splitter1.setUsedPorts(splitter1.getUsedPorts() + 1);
+                splitterRepository.save(splitter1);
+            }
+
+            // Customer 2 - connected to splitter 1, port 2
+            Customer customer2 = new Customer();
+            customer2.setName("Jane Smith");
+            customer2.setAddress("456 Park Avenue, Bangalore");
+            customer2.setNeighborhood("Indiranagar");
+            customer2.setPlan("Standard 100 Mbps");
+            customer2.setConnectionType(ConnectionType.Wired);
+            customer2.setStatus(CustomerStatus.Active);
+            customer2.setSplitter(splitter1);
+            customer2.setAssignedPort(2);
+            customer2.setCreatedAt(LocalDateTime.now());
+            customerRepository.save(customer2);
+
+            if (splitter1 != null) {
+                splitter1.setUsedPorts(splitter1.getUsedPorts() + 1);
+                splitterRepository.save(splitter1);
+            }
+
+            // Customer 3 - connected to splitter 2, port 1
+            Customer customer3 = new Customer();
+            customer3.setName("Robert Brown");
+            customer3.setAddress("789 Tech Street, Bangalore");
+            customer3.setNeighborhood("Whitefield");
+            customer3.setPlan("Basic 50 Mbps");
+            customer3.setConnectionType(ConnectionType.Wireless);
+            customer3.setStatus(CustomerStatus.Pending);
+            customer3.setSplitter(splitter2);
+            customer3.setAssignedPort(1);
+            customer3.setCreatedAt(LocalDateTime.now());
+            customerRepository.save(customer3);
+
+            if (splitter2 != null) {
+                splitter2.setUsedPorts(splitter2.getUsedPorts() + 1);
+                splitterRepository.save(splitter2);
+            }
         }
 
         // Create demo assets
@@ -117,20 +207,58 @@ public class AuthService {
             assetRepository.save(createAsset(null, AssetType.Switch, "Cisco SG350-10", "SW-2024-001", AssetStatus.Available, "Network Room", null, null));
             assetRepository.save(createAsset(null, AssetType.CPE, "Generic CPE", "CPE-2024-001", AssetStatus.Available, "Warehouse", null, null));
         }
-
         // Create demo deployment tasks
         if (deploymentTaskRepository.count() == 0) {
             Customer customer = customerRepository.findById(3L).orElse(null);
             Technician technician = technicianRepository.findById(1L).orElse(null);
 
             if (customer != null && technician != null) {
-                deploymentTaskRepository.save(new DeploymentTask(null, customer, technician,
-                        TaskStatus.Scheduled, java.time.LocalDate.now().plusDays(2),
-                        "Install fiber connection for new customer"));
+                // Task 1 - Scheduled
+                DeploymentTask task1 = new DeploymentTask();
+                task1.setCustomer(customer);
+                task1.setTechnician(technician);
+                task1.setTaskType("Installation");
+                task1.setStatus(TaskStatus.Scheduled);
+                task1.setScheduledDate(LocalDate.now().plusDays(2));
+                task1.setDescription("Install fiber connection for new customer - Robert Brown");
+                task1.setNotes(null);
+                task1.setCompletedAt(null);
+                deploymentTaskRepository.save(task1);
+
+                // Task 2 - In Progress
+                Customer customer2 = customerRepository.findById(1L).orElse(null);
+                Technician technician2 = technicianRepository.findById(2L).orElse(null);
+
+                if (customer2 != null && technician2 != null) {
+                    DeploymentTask task2 = new DeploymentTask();
+                    task2.setCustomer(customer2);
+                    task2.setTechnician(technician2);
+                    task2.setTaskType("Maintenance");
+                    task2.setStatus(TaskStatus.InProgress);
+                    task2.setScheduledDate(LocalDate.now());
+                    task2.setDescription("Router configuration and speed test");
+                    task2.setNotes("Customer reported slow speeds");
+                    task2.setCompletedAt(null);
+                    deploymentTaskRepository.save(task2);
+                }
+
+                // Task 3 - Completed
+                Customer customer3 = customerRepository.findById(2L).orElse(null);
+
+                if (customer3 != null && technician != null) {
+                    DeploymentTask task3 = new DeploymentTask();
+                    task3.setCustomer(customer3);
+                    task3.setTechnician(technician);
+                    task3.setTaskType("Installation");
+                    task3.setStatus(TaskStatus.Completed);
+                    task3.setScheduledDate(LocalDate.now().minusDays(5));
+                    task3.setDescription("Complete fiber installation for Jane Smith");
+                    task3.setNotes("Installation completed successfully. Customer satisfied.");
+                    task3.setCompletedAt(LocalDateTime.now().minusDays(5));
+                    deploymentTaskRepository.save(task3);
+                }
             }
         }
-        // Add this at the end of initializeDemoData() method in AuthService.java
-
 // Create demo audit logs
         if (auditLogRepository.count() == 0) {
             User admin = userRepository.findByUsername("admin").orElse(null);

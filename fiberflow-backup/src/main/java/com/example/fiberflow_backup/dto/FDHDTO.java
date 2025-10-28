@@ -1,0 +1,18 @@
+package com.example.fiberflow_backup.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class FDHDTO {
+    private Long fdhId;
+    private String name;
+    private String location;
+    private String region;
+    private Integer maxPorts;
+    private List<SplitterDTO> splitters;
+}

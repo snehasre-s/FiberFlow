@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "deployment_tasks")
@@ -27,6 +28,9 @@ public class DeploymentTask {
     @JoinColumn(name = "technician_id")
     private Technician technician;
 
+    @Column(name = "task_type")
+    private String taskType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskStatus status = TaskStatus.Scheduled;
@@ -35,5 +39,11 @@ public class DeploymentTask {
     private LocalDate scheduledDate;
 
     @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 }
