@@ -2,7 +2,7 @@ package com.example.fiberflow_backup.controller;
 
 import com.example.fiberflow_backup.dto.*;
 import com.example.fiberflow_backup.dto.TaskDetailsResponse.TaskNote;
-import com.example.fiberflow_backup.service.TaskService;
+import com.example.fiberflow_backup.serviceimpl.TaskServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,25 +19,25 @@ import java.util.List;
 @Tag(name = "Tasks", description = "Deployment task management APIs")
 public class TaskController {
 
-    private final TaskService taskService;
+    private final TaskServiceImpl taskServiceImpl;
 
     @GetMapping
     @Operation(summary = "Get all tasks", description = "Retrieve list of all deployment tasks")
     public ResponseEntity<List<TaskDTO>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
+        return ResponseEntity.ok(taskServiceImpl.getAllTasks());
     }
 
     @GetMapping("/technicians")
     @Operation(summary = "Get all technicians", description = "Retrieve list of all technicians")
     public ResponseEntity<List<TechnicianSimpleDTO>> getAllTechnicians() {
-        return ResponseEntity.ok(taskService.getAllTechnicians());
+        return ResponseEntity.ok(taskServiceImpl.getAllTechnicians());
     }
 
     @GetMapping("/{taskId}/details")
     @Operation(summary = "Get task details", description = "Get detailed information including checklist and notes")
     public ResponseEntity<?> getTaskDetails(@PathVariable Long taskId) {
         try {
-            return ResponseEntity.ok(taskService.getTaskDetails(taskId));
+            return ResponseEntity.ok(taskServiceImpl.getTaskDetails(taskId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     new ErrorResponse(e.getMessage())
@@ -51,7 +51,7 @@ public class TaskController {
             @PathVariable Long taskId,
             @Valid @RequestBody UpdateTaskStatusRequest request) {
         try {
-            taskService.updateTaskStatus(taskId, request.getStatus());
+            taskServiceImpl.updateTaskStatus(taskId, request.getStatus());
             return ResponseEntity.ok(new SuccessResponse("Task status updated successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -66,7 +66,7 @@ public class TaskController {
             @PathVariable Long taskId,
             @RequestBody UpdateChecklistRequest request) {
         try {
-            taskService.updateChecklist(taskId, request);
+            taskServiceImpl.updateChecklist(taskId, request);
             return ResponseEntity.ok(new SuccessResponse("Checklist updated successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -81,7 +81,7 @@ public class TaskController {
             @PathVariable Long taskId,
             @Valid @RequestBody AddTaskNoteRequest request) {
         try {
-            TaskNote note = taskService.addNote(taskId, request.getContent());
+            TaskNote note = taskServiceImpl.addNote(taskId, request.getContent());
             return ResponseEntity.ok(note);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(

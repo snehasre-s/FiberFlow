@@ -15,3 +15,4 @@ public class AuditLogDTO {
     private String description;
     private LocalDateTime timestamp;
 }
+

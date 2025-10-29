@@ -3,7 +3,7 @@ package com.example.fiberflow_backup.controller;
 import com.example.fiberflow_backup.dto.LoginRequest;
 import com.example.fiberflow_backup.dto.LoginResponse;
 import com.example.fiberflow_backup.dto.UpdateLastLoginRequest;
-import com.example.fiberflow_backup.service.AuthService;
+import com.example.fiberflow_backup.serviceimpl.AuthServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication", description = "User authentication and login APIs")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/login")
     @Operation(summary = "User login", description = "Authenticate user and generate JWT token")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
-            LoginResponse response = authService.login(request);
+            LoginResponse response = authServiceImpl.login(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -37,7 +37,7 @@ public class AuthController {
     @Operation(summary = "Update last login", description = "Update user's last login timestamp")
     public ResponseEntity<?> updateLastLogin(@RequestBody UpdateLastLoginRequest request) {
         try {
-            authService.updateLastLogin(request.getUserId());
+            authServiceImpl.updateLastLogin(request.getUserId());
             return ResponseEntity.ok(new SuccessResponse("Last login updated"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -49,7 +49,7 @@ public class AuthController {
     @PostMapping("/init-demo-data")
     @Operation(summary = "Initialize demo data", description = "Create demo users, customers, and assets")
     public ResponseEntity<String> initDemoData() {
-        authService.initializeDemoData();
+        authServiceImpl.initializeDemoData();
         return ResponseEntity.ok("Demo data initialized successfully");
     }
 

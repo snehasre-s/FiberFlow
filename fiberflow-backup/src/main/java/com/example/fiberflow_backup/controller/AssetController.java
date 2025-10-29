@@ -3,7 +3,7 @@ package com.example.fiberflow_backup.controller;
 import com.example.fiberflow_backup.dto.AssetRequest;
 import com.example.fiberflow_backup.dto.AssetUpdateRequest;
 import com.example.fiberflow_backup.model.Asset;
-import com.example.fiberflow_backup.service.AssetService;
+import com.example.fiberflow_backup.serviceimpl.AssetServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,13 +25,13 @@ import java.util.Map;
 @Tag(name = "Asset Management", description = "APIs for managing network assets")
 public class AssetController {
 
-    private final AssetService assetService;
+    private final AssetServiceImpl assetServiceImpl;
 
     @GetMapping
     @Operation(summary = "Get all assets", description = "Retrieve a list of all network assets")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved assets")
     public ResponseEntity<List<Asset>> getAllAssets() {
-        return ResponseEntity.ok(assetService.getAllAssets());
+        return ResponseEntity.ok(assetServiceImpl.getAllAssets());
     }
 
     @GetMapping("/{id}")
@@ -43,7 +43,7 @@ public class AssetController {
     public ResponseEntity<?> getAssetById(
             @Parameter(description = "Asset ID") @PathVariable Long id) {
         try {
-            return ResponseEntity.ok(assetService.getAssetById(id));
+            return ResponseEntity.ok(assetServiceImpl.getAssetById(id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(e.getMessage()));
@@ -54,7 +54,7 @@ public class AssetController {
     @Operation(summary = "Get asset statistics", description = "Get count of assets by type")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved statistics")
     public ResponseEntity<Map<String, Long>> getAssetStatistics() {
-        return ResponseEntity.ok(assetService.getAssetStatistics());
+        return ResponseEntity.ok(assetServiceImpl.getAssetStatistics());
     }
 
     @PostMapping
@@ -65,7 +65,7 @@ public class AssetController {
     })
     public ResponseEntity<?> createAsset(@Valid @RequestBody AssetRequest request) {
         try {
-            Asset asset = assetService.createAsset(request);
+            Asset asset = assetServiceImpl.createAsset(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(asset);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -84,7 +84,7 @@ public class AssetController {
             @Parameter(description = "Asset ID") @PathVariable Long id,
             @Valid @RequestBody AssetUpdateRequest request) {
         try {
-            Asset asset = assetService.updateAsset(id, request);
+            Asset asset = assetServiceImpl.updateAsset(id, request);
             return ResponseEntity.ok(asset);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -102,7 +102,7 @@ public class AssetController {
     public ResponseEntity<?> deleteAsset(
             @Parameter(description = "Asset ID") @PathVariable Long id) {
         try {
-            assetService.deleteAsset(id);
+            assetServiceImpl.deleteAsset(id);
             return ResponseEntity.ok(new SuccessResponse("Asset deleted successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest()

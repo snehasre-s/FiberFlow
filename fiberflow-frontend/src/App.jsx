@@ -16,7 +16,7 @@ import DeploymentLeadDashboard from './pages/deployment-lead/DeploymentLeadDashb
 import AssetInventory from './pages/assets/AssetInventory';
 import NetworkTopology from './pages/network/NetworkTopology';
 import DeploymentTasks from './pages/tasks/DeploymentTasks';
-
+import AuditLogs from './pages/logs/AuditLogs';
 
 // Placeholder pages
 const PlaceholderPage = ({ title }) => (
@@ -202,7 +202,7 @@ function App() {
             path="/audit-logs" 
             element={
               <ProtectedRoute user={user}>
-                <PlaceholderPage title="Audit Logs" />
+                <AuditLogs />
               </ProtectedRoute>
             } 
           />

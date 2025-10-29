@@ -2,7 +2,7 @@ package com.example.fiberflow_backup.controller;
 
 import com.example.fiberflow_backup.dto.CustomerDetailDTO;
 import com.example.fiberflow_backup.dto.SupportDashboardResponse;
-import com.example.fiberflow_backup.service.SupportService;
+import com.example.fiberflow_backup.serviceimpl.SupportServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Support", description = "Customer support and ticket management APIs")
 public class SupportController {
 
-    private final SupportService supportService;
+    private final SupportServiceImpl supportServiceImpl;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Get support dashboard", description = "Retrieve support metrics and customer data")
     public ResponseEntity<SupportDashboardResponse> getSupportDashboard() {
-        SupportDashboardResponse dashboard = supportService.getSupportDashboard();
+        SupportDashboardResponse dashboard = supportServiceImpl.getSupportDashboard();
         return ResponseEntity.ok(dashboard);
     }
 
@@ -29,7 +29,7 @@ public class SupportController {
     @Operation(summary = "Get customer details", description = "Retrieve detailed information about a specific customer")
     public ResponseEntity<?> getCustomerDetail(@PathVariable Long customerId) {
         try {
-            CustomerDetailDTO customer = supportService.getCustomerDetail(customerId);
+            CustomerDetailDTO customer = supportServiceImpl.getCustomerDetail(customerId);
             return ResponseEntity.ok(customer);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
