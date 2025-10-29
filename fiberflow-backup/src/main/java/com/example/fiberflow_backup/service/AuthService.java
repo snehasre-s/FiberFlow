@@ -35,8 +35,8 @@ public class AuthService {
     private final FDHRepository fdhRepository;
     private final SplitterRepository splitterRepository;
     private final AuthenticationManager authenticationManager;
-    @Autowired
-    AuditLogRepository auditLogRepository;
+    private final AuditLogRepository auditLogRepository;
+    private final SupportTicketRepository supportTicketRepository;
 
 
     public LoginResponse login(LoginRequest request) {
@@ -104,6 +104,9 @@ public class AuthService {
             userRepository.save(createUser(null, "deploymentlead",
                     passwordEncoder.encode("deploy123"), UserRole.DeploymentLead));
         }
+
+
+
 
         // Create demo technicians
         if (technicianRepository.count() == 0) {
@@ -279,6 +282,52 @@ public class AuthService {
                 auditLogRepository.save(new AuditLog(null, planner, "FDH_CONFIGURED",
                         "Configured FDH-North-01", LocalDateTime.now().minusMinutes(5)));
             }
+        }
+        // Add this to initializeDemoData() method
+
+// Create demo support tickets
+        if (supportTicketRepository.count() == 0) {
+            Customer customer1 = customerRepository.findById(1L).orElse(null);
+            Customer customer2 = customerRepository.findById(2L).orElse(null);
+            Customer customer3 = customerRepository.findById(3L).orElse(null);
+
+            if (customer1 != null) {
+                SupportTicket ticket1 = new SupportTicket();
+                ticket1.setCustomer(customer1);
+                ticket1.setIssue("Slow internet speed - getting 50 Mbps instead of 200 Mbps");
+                ticket1.setPriority("High");
+                ticket1.setStatus("Open");
+                ticket1.setCreatedAt(LocalDateTime.now().minusHours(2));
+                ticket1.setAssignedTo("Support Agent");
+                supportTicketRepository.save(ticket1);
+            }
+
+            if (customer2 != null) {
+                SupportTicket ticket2 = new SupportTicket();
+                ticket2.setCustomer(customer2);
+                ticket2.setIssue("WiFi router not working properly");
+                ticket2.setPriority("Medium");
+                ticket2.setStatus("InProgress");
+                ticket2.setCreatedAt(LocalDateTime.now().minusHours(5));
+                ticket2.setAssignedTo("Support Agent");
+                supportTicketRepository.save(ticket2);
+            }
+
+            if (customer3 != null) {
+                SupportTicket ticket3 = new SupportTicket();
+                ticket3.setCustomer(customer3);
+                ticket3.setIssue("Billing inquiry - double charge this month");
+                ticket3.setPriority("Low");
+                ticket3.setStatus("Resolved");
+                ticket3.setCreatedAt(LocalDateTime.now().minusDays(1));
+                ticket3.setResolvedAt(LocalDateTime.now().minusHours(3));
+                ticket3.setAssignedTo("Support Agent");
+                supportTicketRepository.save(ticket3);
+            }
+
+            System.out.println("✅ Demo support tickets created");
+
+
         }
     }
 
