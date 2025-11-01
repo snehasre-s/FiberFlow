@@ -6,5 +6,4 @@ import com.example.fiberflow_backup.dto.LoginResponse;
 public interface AuthService {
     LoginResponse login(LoginRequest request);
     void updateLastLogin(Long userId);
-    void initializeDemoData();
 }

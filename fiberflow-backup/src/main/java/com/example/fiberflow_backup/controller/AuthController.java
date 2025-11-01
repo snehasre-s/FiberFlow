@@ -21,7 +21,7 @@ public class AuthController {
     private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/login")
-    @Operation(summary = "User login", description = "Authenticate user and generate JWT token")
+    @Operation(summary = "Auto login", description = "Login without role selection - role is detected automatically")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginResponse response = authServiceImpl.login(request);
@@ -46,12 +46,6 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/init-demo-data")
-    @Operation(summary = "Initialize demo data", description = "Create demo users, customers, and assets")
-    public ResponseEntity<String> initDemoData() {
-        authServiceImpl.initializeDemoData();
-        return ResponseEntity.ok("Demo data initialized successfully");
-    }
 
     record ErrorResponse(String message) {}
     record SuccessResponse(String message) {}

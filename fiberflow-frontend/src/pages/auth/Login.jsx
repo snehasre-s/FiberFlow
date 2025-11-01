@@ -1,25 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api'
+import api from '../../services/api';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
-    password: '',
-    role: 'Admin'
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const roles = [
-  { value: 'Admin', icon: 'shield-lock-fill', color: 'danger', label: 'Administrator' },
-  { value: 'Planner', icon: 'diagram-3-fill', color: 'primary', label: 'Network Planner' },
-  { value: 'Technician', icon: 'tools', color: 'success', label: 'Field Technician' },
-  { value: 'SupportAgent', icon: 'headset', color: 'info', label: 'Support Agent' },
-  { value: 'FieldEngineer', icon: 'person-badge-fill', color: 'warning', label: 'Field Engineer' },
-  { value: 'DeploymentLead', icon: 'boxes', color: 'secondary', label: 'Deployment Lead' }
-];
 
   const handleChange = (e) => {
     setFormData({
@@ -30,48 +20,46 @@ const Login = ({ onLogin }) => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  try {
-
-    const response = await api.post('/auth/login', {
-      username: formData.username,
-      password: formData.password,
-      role: formData.role  
-    });
-    console.log(response.data)
-    
-    localStorage.setItem('token', response.data.token);
-    
-    const userData = {
-      userId: response.data.userId,
-      username: response.data.username,
-      role: response.data.role
-    };
-    
-    onLogin(userData);
-    
-    await api.post('/auth/update-last-login', { userId: response.data.userId });
-    
-    const roleRoutes = {
-      'Admin': '/admin-dashboard',
-      'Planner': '/planner-dashboard',
-      'Technician': '/technician-dashboard',
-      'SupportAgent': '/support-dashboard',
-      'FieldEngineer': '/field-engineer-dashboard',
-      'DeploymentLead': '/deployment-lead-dashboard'
-    };
-    
-    navigate(roleRoutes[response.data.role] || '/admin-dashboard');
-  } catch (err) {
-    console.error('Login error:', err.response); 
-    setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      // Login without role - backend will return the user's role
+      const response = await api.post('/auth/login', {
+        username: formData.username,
+        password: formData.password
+      });
+      
+      localStorage.setItem('token', response.data.token);
+      
+      const userData = {
+        userId: response.data.userId,
+        username: response.data.username,
+        role: response.data.role
+      };
+      
+      onLogin(userData);
+      
+      await api.post('/auth/update-last-login', { userId: response.data.userId });
+      
+      const roleRoutes = {
+        'Admin': '/admin-dashboard',
+        'Planner': '/planner-dashboard',
+        'Technician': '/technician-dashboard',
+        'SupportAgent': '/support-dashboard',
+        'FieldEngineer': '/field-engineer-dashboard',
+        'DeploymentLead': '/deployment-lead-dashboard'
+      };
+      
+      navigate(roleRoutes[response.data.role] || '/admin-dashboard');
+    } catch (err) {
+      console.error('Login error:', err.response);
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center position-relative overflow-hidden" 
@@ -102,7 +90,7 @@ const Login = ({ onLogin }) => {
 
       <div className="container position-relative" style={{ zIndex: 1 }}>
         <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8 col-xl-6">
+          <div className="col-12 col-md-8 col-lg-6 col-xl-5">
             
             {/* Login Card */}
             <div className="card border-0 shadow-lg" 
@@ -192,40 +180,6 @@ const Login = ({ onLogin }) => {
                     />
                   </div>
 
-                  {/* Role Selection */}
-                  <div className="mb-4">
-                    <label className="form-label fw-semibold text-dark mb-3">
-                      <i className="bi bi-person-badge-fill me-2"></i>Select Your Role
-                    </label>
-                    <div className="row g-3">
-                      {roles.map((role) => (
-                        <div key={role.value} className="col-6">
-                          <input
-                            type="radio"
-                            className="btn-check"
-                            name="role"
-                            id={`role-${role.value}`}
-                            value={role.value}
-                            checked={formData.role === role.value}
-                            onChange={handleChange}
-                          />
-                          <label
-                            className={`btn btn-outline-${role.color} w-100 py-3`}
-                            htmlFor={`role-${role.value}`}
-                            style={{ 
-                              borderRadius: '12px',
-                              border: '2px solid',
-                              transition: 'all 0.3s ease'
-                            }}
-                          >
-                            <i className={`bi bi-${role.icon} d-block fs-3 mb-2`}></i>
-                            <small className="fw-semibold">{role.label}</small>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Login Button */}
                   <button
                     type="submit"
@@ -254,62 +208,62 @@ const Login = ({ onLogin }) => {
                 </form>
 
                 {/* Demo Credentials Info */}
-<div className="mt-4 p-4 rounded" 
-     style={{ 
-       background: 'linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%)',
-       borderRadius: '12px'
-     }}>
-  <div className="text-center mb-3">
-    <small className="text-muted fw-semibold">
-      <i className="bi bi-info-circle-fill me-2"></i>Demo Credentials
-    </small>
-  </div>
-  <div className="row g-2 small">
-    <div className="col-12">
-      <table className="table table-sm table-borderless mb-0">
-        <thead>
-          <tr>
-            <th className="text-muted">Role</th>
-            <th className="text-muted">Username</th>
-            <th className="text-muted">Password</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="text-danger fw-semibold">Admin</td>
-            <td><code>admin</code></td>
-            <td><code>admin123</code></td>
-          </tr>
-          <tr>
-            <td className="text-primary fw-semibold">Planner</td>
-            <td><code>planner</code></td>
-            <td><code>planner123</code></td>
-          </tr>
-          <tr>
-            <td className="text-success fw-semibold">Technician</td>
-            <td><code>technician</code></td>
-            <td><code>tech123</code></td>
-          </tr>
-          <tr>
-            <td className="text-info fw-semibold">Support</td>
-            <td><code>support</code></td>
-            <td><code>support123</code></td>
-          </tr>
-          <tr>
-            <td className="text-warning fw-semibold">Field Engineer</td>
-            <td><code>fieldengineer</code></td>
-            <td><code>field123</code></td>
-          </tr>
-          <tr>
-            <td className="text-secondary fw-semibold">Deploy Lead</td>
-            <td><code>deploymentlead</code></td>
-            <td><code>deploy123</code></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+                <div className="mt-4 p-4 rounded" 
+                     style={{ 
+                       background: 'linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%)',
+                       borderRadius: '12px'
+                     }}>
+                  <div className="text-center mb-3">
+                    <small className="text-muted fw-semibold">
+                      <i className="bi bi-info-circle-fill me-2"></i>Demo Credentials
+                    </small>
+                  </div>
+                  <div className="row g-2 small">
+                    <div className="col-12">
+                      <table className="table table-sm table-borderless mb-0">
+                        <thead>
+                          <tr>
+                            <th className="text-muted">Role</th>
+                            <th className="text-muted">Username</th>
+                            <th className="text-muted">Password</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="text-danger fw-semibold">Admin</td>
+                            <td><code>admin</code></td>
+                            <td><code>admin123</code></td>
+                          </tr>
+                          <tr>
+                            <td className="text-primary fw-semibold">Planner</td>
+                            <td><code>planner</code></td>
+                            <td><code>planner123</code></td>
+                          </tr>
+                          <tr>
+                            <td className="text-success fw-semibold">Technician</td>
+                            <td><code>technician</code></td>
+                            <td><code>tech123</code></td>
+                          </tr>
+                          <tr>
+                            <td className="text-info fw-semibold">Support</td>
+                            <td><code>support</code></td>
+                            <td><code>support123</code></td>
+                          </tr>
+                          <tr>
+                            <td className="text-warning fw-semibold">Field Engineer</td>
+                            <td><code>fieldengineer</code></td>
+                            <td><code>field123</code></td>
+                          </tr>
+                          <tr>
+                            <td className="text-secondary fw-semibold">Deploy Lead</td>
+                            <td><code>deploymentlead</code></td>
+                            <td><code>deploy123</code></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
 
               </div>
             </div>

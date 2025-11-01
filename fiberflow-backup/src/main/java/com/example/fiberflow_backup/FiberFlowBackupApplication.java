@@ -13,11 +13,4 @@ public class FiberFlowBackupApplication {
 		SpringApplication.run(FiberFlowBackupApplication.class, args);
 	}
 
-	@Bean
-	public CommandLineRunner initData(AuthServiceImpl authServiceImpl) {
-		return args -> {
-			authServiceImpl.initializeDemoData();
-			System.out.println("✅ Demo data initialized successfully!");
-		};
-	}
 }
